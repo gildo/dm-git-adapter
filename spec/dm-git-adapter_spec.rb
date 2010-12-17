@@ -1,12 +1,14 @@
 require File.dirname(__FILE__) + '/spec_helper'
 require 'dm-core/spec/shared/adapter_spec'
 
+ENV['ADAPTER'] = 'git'
+
 describe 'DataMapper::Adapters::GitAdapter' do
+
   before :all do
     @adapter = DataMapper.setup(:default, :adapter => 'git',
-                                :hostname => 'localhost',
-                                :database => 'dm-git-adapter')
-    end
+                                :repository => '/tmp/git-dm-data')
+  end
 
-    it_should_behave_like 'An Adapter'
+  it_should_behave_like 'An Adapter'
 end

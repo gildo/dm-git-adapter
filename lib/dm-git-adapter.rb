@@ -1,30 +1,42 @@
 require 'dm-core'
-require 'dm-core/adapters/abstract_adapter' 
-require 'json'
 require 'grit'
+require 'json'
 
-module DataMapper::Adapters
+module DataMapper
+  module Adapters
+    class GitAdapter < AbstractAdapter
 
-  class GitAdapter < AbstractAdapter
-    mattr_accessor :db_root
-    
-    self.db_root = './git-data'
+      attr_accessor :repository, :default_branch, :git_user_name, :git_user_email
 
-    def initialize(name, options)
-      super                                       # 3
+      #self.default_branch = 'master'
 
-      @options[:database] ||= GitAdapter.db_root
-      @repo = Grit::Repo.new                              
-    end
+      
+      def initialize(name, options)
+        super
 
-    def create(resources)
-      update_records(resources.first.model) do |records|
-        resources.each do |resource|
-          initialize_serial(resource, records.size.succ)
-          records << attributes_as_fields(resource.attributes(nil))
+        @repository = @options[:repository] || '/tmp/dm-git-data'
+        @repo = Grit::Repo.new(@repository)
+      end
+
+      def execute(&block)
+        self.index = Grit::Index.new(@repository)
+        yield self
+      end
+
+      def serialize(resource)
+        resource.attributes(:field).to_json
+      end
+
+      def create(resources)
+        #LOL db_subdir id LOL
+        dir = File.join(self.class.db_subdir, self.id)
+        
+        result = execute do |resource|
+          resource.index.add(File.join(dir, 'attributes.json'), serialize(resource))
         end
+
+        return result
       end
     end
-
   end
 end
