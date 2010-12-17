@@ -18,6 +18,17 @@ module DataMapper
         @repo = Grit::Repo.new(@repository)
       end
 
+      def self.last_commit(branch = nil)
+        branch ||= default_branch
+        return nil unless repo.commits(branch).any?
+        GitModel.repo.commits("#{branch}^..#{branch}").first || GitModel.repo.commits(branch).first
+      end
+      
+      def self.current_tree(branch = nil)
+        c = last_commit(branch)
+        c ? c.tree : nil
+      end
+
       def execute(&block)
         self.index = Grit::Index.new(@repository)
         yield self
@@ -31,12 +42,28 @@ module DataMapper
         #LOL db_subdir id LOL
         dir = File.join(self.class.db_subdir, self.id)
         
-        result = execute do |resource|
+        execute do |resource|
           resource.index.add(File.join(dir, 'attributes.json'), serialize(resource))
         end
-
-        return result
       end
+
+      def read (query)
+        object = self.current_tree / File.join(dir, 'attributes.json')
+        attributes = JSON.parse(object.data, :max_nesting => false)
+        query.filter_records(attributes)
+      end
+
+      def update(attributes, collection)
+        attributes = attributes_as_fields(attributes)
+        execute do
+          collection.each do |resource|
+            attributes = resource.attributes(:field).merge(attributes)
+            resource.index.add(File.join(dir, 'attributes.json'), serialize(resource))
+          end
+        end
+
+      end
+
     end
   end
 end
