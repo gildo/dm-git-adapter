@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.name = "dm-git-adapter"
   s.version = "0.0.0"
   s.date = Time.now.strftime('%Y-%m-%d')
-  s.summary = "An Adapter for Datamapper for Git"
+  s.summary = "A Git Adapter for Datamapper"
   s.homepage = "http://github.com/fyskij/dm-git-adapter"
   s.email = "fiorito.g@gmail.com"
   s.authors = [ "Ermenegildo Fiorito" ]
