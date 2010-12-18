@@ -7,7 +7,7 @@ module DataMapper
     class GitAdapter < AbstractAdapter
 
       attr_accessor :path
-
+      attr_accessor :index, :repo
       default_branch = 'master'
             
       def self.create_db!
@@ -23,27 +23,35 @@ module DataMapper
         super
 
         @path = @options[:path] || '/tmp/dm-git-data'
+        @repo = Grit::Repo.new(@path)
       end
-      
-      def repo
-        repo = Grit::Repo.new(@path)
-      end
+        
+      def last_commit(branch = nil)
+        branch ||= "master"
+        return nil unless @repo.commits(branch).any?
+        @repo.commits("#{branch}^..#{branch}").first || @repo.commits(branch).first
+       end
 
+     
       def execute(&block)
-        def self.index; Grit::Index.new(repo);end
+        self.index = Grit::Index.new(@repo)
+
+        parent = @repo.commits.last
+        index.read_tree(parent.to_s)
         yield self
+        committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
+        sha = index.commit("lol", parent ? [parent] : nil, committer, nil, "master")
       end
 
       def serialize(resource)
-         attributes_as_fields(resource.attributes).to_json
+         #attributes_as_fields(resource).to_json
       end
 
       def create(resources)
         execute do |t|
           resources.each do |resource|
             initialize_serial(resource, rand(2**32))
-            attributes = serialize(resource)
-            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), serialize(resource))
+            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), resource.attributes(:field).to_json)
           end
         end
       end
