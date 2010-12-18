@@ -6,64 +6,47 @@ module DataMapper
   module Adapters
     class GitAdapter < AbstractAdapter
 
-      attr_accessor :repository, :default_branch, :git_user_name, :git_user_email
+      attr_accessor :path
 
-      #self.default_branch = 'master'
+      default_branch = 'master'
+            
+      def self.create_db!
+        raise "Database #{@path} already exists!" if File.exist? @path
+          if @path =~ /.+\.git/
+            Grit::Repo.init_bare @path
+          else
+            Grit::Repo.init @path 
+          end
+      end
 
-      
       def initialize(name, options)
         super
 
-        @repository = @options[:repository] || '/tmp/dm-git-data'
-        @repo = Grit::Repo.new(@repository)
-      end
-
-      def self.last_commit(branch = nil)
-        branch ||= default_branch
-        return nil unless repo.commits(branch).any?
-        GitModel.repo.commits("#{branch}^..#{branch}").first || GitModel.repo.commits(branch).first
+        @path = @options[:path] || '/tmp/dm-git-data'
       end
       
-      def self.current_tree(branch = nil)
-        c = last_commit(branch)
-        c ? c.tree : nil
+      def repo
+        repo = Grit::Repo.new(@path)
       end
 
       def execute(&block)
-        self.index = Grit::Index.new(@repository)
+        def self.index; Grit::Index.new(repo);end
         yield self
       end
 
       def serialize(resource)
-        resource.attributes(:field).to_json
+         attributes_as_fields(resource.attributes(nil))
       end
 
       def create(resources)
-        #LOL db_subdir id LOL
-        dir = File.join(self.class.db_subdir, self.id)
-        
-        execute do |resource|
-          resource.index.add(File.join(dir, 'attributes.json'), serialize(resource))
-        end
-      end
-
-      def read (query)
-        object = self.current_tree / File.join(dir, 'attributes.json')
-        attributes = JSON.parse(object.data, :max_nesting => false)
-        query.filter_records(attributes)
-      end
-
-      def update(attributes, collection)
-        attributes = attributes_as_fields(attributes)
-        execute do
-          collection.each do |resource|
-            attributes = resource.attributes(:field).merge(attributes)
-            resource.index.add(File.join(dir, 'attributes.json'), serialize(resource))
+        execute do |t|
+          resources.each do |resource|
+            initialize_serial(resource, rand(2**32))
+            attributes = serialize(resource)
+            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), attributes.to_json)
           end
         end
-
       end
-
     end
   end
 end
