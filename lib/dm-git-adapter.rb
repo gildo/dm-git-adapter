@@ -35,7 +35,7 @@ module DataMapper
       end
 
       def serialize(resource)
-         attributes_as_fields(resource.attributes(nil))
+         attributes_as_fields(resource.attributes).to_json
       end
 
       def create(resources)
@@ -43,7 +43,7 @@ module DataMapper
           resources.each do |resource|
             initialize_serial(resource, rand(2**32))
             attributes = serialize(resource)
-            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), attributes.to_json)
+            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), serialize(resource))
           end
         end
       end
