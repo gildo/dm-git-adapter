@@ -35,16 +35,11 @@ module DataMapper
      
       def execute(&block)
         self.index = Grit::Index.new(@repo)
-
         parent = @repo.commits.last
         index.read_tree(parent.to_s)
         yield self
         committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
         sha = index.commit("lol", parent ? [parent] : nil, committer, nil, "master")
-      end
-
-      def serialize(resource)
-         #attributes_as_fields(resource).to_json
       end
 
       def create(resources)
