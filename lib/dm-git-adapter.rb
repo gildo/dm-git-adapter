@@ -26,27 +26,36 @@ module DataMapper
         @repo = Grit::Repo.new(@path)
       end
         
-      def last_commit(branch = nil)
-        branch ||= "master"
+      def last_commit(branch = "master")
+        branch = "master"
         return nil unless @repo.commits(branch).any?
         @repo.commits("#{branch}^..#{branch}").first || @repo.commits(branch).first
-       end
-
+      end
      
       def execute(&block)
-        self.index = Grit::Index.new(@repo)
-        parent = @repo.commits.last
-        index.read_tree(parent.to_s)
-        yield self
-        committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
-        sha = index.commit("lol", parent ? [parent] : nil, committer, nil, "master")
+        if index
+          yield self
+        else
+          parent = last_commit
+          self.index = Grit::Index.new(@repo)
+
+          index.read_tree(parent.to_s)
+          yield self
+          committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
+          #sha = index.commit("lol", nil, committer, nil, "master")
+          #return sha
+        end
       end
 
       def create(resources)
         execute do |t|
           resources.each do |resource|
-            initialize_serial(resource, rand(2**32))
-            t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), resource.attributes(:field).to_json)
+            #t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), JSON.pretty_generate(resource.attributes))
+           attpath = "#{@path}/#{resource.class.storage_name.to_s}/attributes.json"
+           File.open("#{attpath}", 'w') { |f| f.write(JSON.pretty_generate(resource.attributes))}
+           @repo.add(attpath)
+           @repo.commit('commit')
+
           end
         end
       end
