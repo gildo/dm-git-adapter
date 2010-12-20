@@ -42,23 +42,19 @@ module DataMapper
           index.read_tree(parent.to_s)
           yield self
           committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
-          #sha = index.commit("lol", nil, committer, nil, "master")
-          #return sha
+          sha = index.commit("lol", nil, committer, nil, "master")
+          return sha
         end
       end
 
       def create(resources)
         execute do |t|
           resources.each do |resource|
-            #t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), JSON.pretty_generate(resource.attributes))
-           attpath = "#{@path}/#{resource.class.storage_name.to_s}/attributes.json"
-           File.open("#{attpath}", 'w') { |f| f.write(JSON.pretty_generate(resource.attributes))}
-           @repo.add(attpath)
-           @repo.commit('commit')
-
+           t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), JSON.pretty_generate(resource.attributes))
           end
         end
       end
     end
+    const_added(:GitAdapter)
   end
 end
