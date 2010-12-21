@@ -20,6 +20,10 @@ and of the strange clowns in control of it
 
 message
 
+  s.add_dependency('dm-core')
+  s.add_dependency('simple_uuid')
+
+
 end
 
 
