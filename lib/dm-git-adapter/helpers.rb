@@ -20,7 +20,7 @@ module Helpers
       yield self
       committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
       index.commit("lol", nil, committer, nil, "master")
-      
+
     end
   end
 
@@ -28,4 +28,14 @@ module Helpers
     c = last_commit(branch)
     c ? c.tree : nil
   end
+
+  def id
+    @id
+  end
+
+  def id=(string)
+    # TODO ensure is valid as a filename
+    @id = string
+  end
+
 end

@@ -15,7 +15,8 @@ module DataMapper::Adapters
     def create(resources)
       execute do |t|
         resources.each do |resource|
-          t.index.add(File.join("#{resource.class.storage_name.to_s}", "attributes.json"), JSON.pretty_generate(resource.attributes))
+          resource.id.nil?? resource[:id] = SimpleUUID::UUID.new.to_guid : self
+          t.index.add(File.join("#{resource.class.storage_name.to_s}", "#{resource.id.to_s}", "attributes.json"), JSON.pretty_generate(resource.attributes))
         end
       end
     end

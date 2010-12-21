@@ -5,7 +5,7 @@ module DataMapper
       mod.class_eval do
         include DataMapper::Resource
 
-        property :id, String, :key => true
+        property :id, Serial, :key => true, :default => Proc.new { SimpleUUID::UUID.new.to_guid }
       end
     end
   end
