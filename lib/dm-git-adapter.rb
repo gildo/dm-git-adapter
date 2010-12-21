@@ -1,37 +1,29 @@
 require 'dm-core'
 require 'grit'
 require 'json'
+require 'pathname'
+require Pathname(__FILE__).dirname + 'dm-git-adapter/adapter'
 
 module DataMapper
   module Adapters
     class GitAdapter < AbstractAdapter
 
-      attr_accessor :path
-      attr_accessor :index, :repo
-      default_branch = 'master'
-            
+      attr_accessor :path, :index, :repo, :attributes
+
       def self.create_db!
         raise "Database #{@path} already exists!" if File.exist? @path
-          if @path =~ /.+\.git/
-            Grit::Repo.init_bare @path
-          else
-            Grit::Repo.init @path 
-          end
+        if @path =~ /.+\.git/
+          Grit::Repo.init_bare @path
+        else
+        end
       end
 
-      def initialize(name, options)
-        super
-
-        @path = @options[:path] || '/tmp/dm-git-data'
-        @repo = Grit::Repo.new(@path)
-      end
-        
       def last_commit(branch = "master")
         branch = "master"
         return nil unless @repo.commits(branch).any?
         @repo.commits("#{branch}^..#{branch}").first || @repo.commits(branch).first
       end
-     
+
       def execute(&block)
         if index
           yield self
@@ -47,13 +39,11 @@ module DataMapper
         end
       end
 
-      def create(resources)
-        execute do |t|
-          resources.each do |resource|
-           t.index.add(File.join(resource.class.storage_name.to_s, 'attributes.json'), JSON.pretty_generate(resource.attributes))
-          end
-        end
+      def current_tree(branch = nil)
+        c = last_commit(branch)
+        c ? c.tree : nil
       end
+
     end
     const_added(:GitAdapter)
   end
