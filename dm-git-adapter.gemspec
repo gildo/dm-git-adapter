@@ -1,7 +1,10 @@
+$LOAD_PATH.unshift 'lib'
+require 'dm-git-adapter'
+
 Gem::Specification.new do |s|
 
   s.name = "dm-git-adapter"
-  s.version = "0.0.0"
+  s.version = DataMapper::Adapters::GitAdapter::VERSION
   s.date = Time.now.strftime('%Y-%m-%d')
   s.summary = "A Git Adapter for Datamapper"
   s.homepage = "http://github.com/fyskij/dm-git-adapter"

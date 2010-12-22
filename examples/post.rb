@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift 'lib'
 require 'dm-git-adapter'
 
 class Post
