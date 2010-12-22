@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift 'lib'
+$LOAD_PATH.unshift File.realpath(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'dm-git-adapter'
 
 class Post
@@ -15,6 +15,7 @@ DataMapper.setup(:default, 'git:///tmp/dm-git-data')
 DataMapper.finalize
 
 @post = Post.create(
+#  :id         => "my-id",
   :title      => "My SectaMapper post",
   :body       => "A lot fewtext ...",
   :created_at => Time.now

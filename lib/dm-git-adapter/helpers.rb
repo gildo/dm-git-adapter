@@ -1,5 +1,7 @@
 module Helpers
 
+  attr_accessor :id
+
   def create_db!
     raise "Database #{@path} already exists!" if File.exist? @path
     Grit::Repo.init @path
@@ -29,13 +31,13 @@ module Helpers
     c ? c.tree : nil
   end
 
-  def id
-    @id
-  end
+#  def id
+#    @id
+#  end
 
-  def id=(string)
+#  def id=(string)
     # TODO ensure is valid as a filename
-    @id = string
-  end
+#    @id = string
+#  end
 
 end
