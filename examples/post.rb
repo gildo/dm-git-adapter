@@ -15,7 +15,6 @@ DataMapper.setup(:default, 'git:///tmp/dm-git-data')
 DataMapper.finalize
 
 @post = Post.create(
-#  :id         => "my-id",
   :title      => "My SectaMapper post",
   :body       => "A lot fewtext ...",
   :created_at => Time.now

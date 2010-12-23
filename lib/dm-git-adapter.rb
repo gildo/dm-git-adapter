@@ -6,7 +6,7 @@ require 'simple_uuid'
 
 require 'dm-git-adapter/helpers'
 require 'dm-git-adapter/adapter'
-require 'dm-git-adapter/git_resource'
+
 
 module DataMapper
   module Adapters

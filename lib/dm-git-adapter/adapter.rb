@@ -1,6 +1,6 @@
 module DataMapper::Adapters
   class GitAdapter < AbstractAdapter
-    attr_accessor :path, :index, :id
+    attr_accessor :path, :index
 
     include Helpers
 
@@ -13,19 +13,21 @@ module DataMapper::Adapters
     end
 
     def create(resources)
-      execute do |t|
+      execute(resources.first.model) do |records|
         resources.each do |resource|
-          
-          if resource.id.nil?
-            resource[:id] = SimpleUUID::UUID.new.to_guid
-          else 
-            puts resource.id
-          end
-
-          t.index.add(File.join("#{resource.class.storage_name.to_s}", "#{resource.id.to_s}", "attributes.json"), JSON.pretty_generate(resource.attributes))
+          initialize_serial(resource, records.size.succ)
+          rec = attributes_as_fields(resource.attributes(nil))
+          index.add(json_file(resources.first.model), JSON.pretty_generate(rec))
         end
       end
     end
+
+    def read(query)
+      object = File.join("#{query.model.storage_name.to_s}", 'attributes.json')
+      attributes = JSON.parse(File.open(object).read)
+      query.filter_records(attributes)
+    end
+
   end
 
   const_added(:GitAdapter)
