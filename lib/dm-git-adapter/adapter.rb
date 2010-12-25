@@ -14,19 +14,29 @@ module DataMapper::Adapters
 
     def create(resources)
       resources.each do |resource|
-
         puts resource.attributes
         write_records(resources.first.model, resource.attributes) do |t|
           initialize_serial(resource, t.records.size.succ)
           t.index.add(File.join(resource.class.storage_name.to_s, resource.id.to_s, "attributes.json"), JSON.pretty_generate(resource.attributes))
         end
       end
+      keys_for(resources.first.model)
     end
     
     def read(query)
-      object = File.join("#{query.model.storage_name.to_s}", "#{}", 'attributes.json')
-      attributes = JSON.parse(File.open(object).read)
-      query.filter_records(attributes)
+      results = []
+      dirs = (current_tree / query.model.storage_name.to_s).trees
+      dirs.each do |dir|
+        o = self.class.new
+        o.send :loads, File.join(query.model.storage_name.to_s, dir.name)
+        results << o
+        query.filter_records(results)
+      end
+    end
+
+    def loads(dir)
+      object = current_tree / File.join(dir, 'attributes.json')
+      JSON.parse(object.data, :max_nesting => false)
     end
 
   end

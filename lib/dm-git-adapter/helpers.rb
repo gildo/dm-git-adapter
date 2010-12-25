@@ -11,8 +11,9 @@ module Helpers
 
 
   def current_tree(branch = nil)
-    c = last_commit(branch)
-    c ? c.tree : nil
+    #c = last_commit(branch)
+    #c ? c.tree : nil
+    (@repo.commits("master^..master").first || @repo.commits("master").first).tree
   end
 
   def json_file(model)
@@ -32,6 +33,11 @@ module Helpers
     yield self
     committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
     index.commit("lol", nil, committer, nil, "master")
+  end
+
+  def keys_for(model)
+    keys = current_tree / Dir["#{model}/**"]
+    puts keys
   end
 
 end
