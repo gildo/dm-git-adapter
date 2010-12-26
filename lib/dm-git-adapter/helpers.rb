@@ -25,11 +25,11 @@ module Helpers
     File.readable?(file) && JSON.parse(File.read(file)) || []
   end
 
-  def write_records(model, records, &block)
+  def write_records(model, attrs, &block)
     parent = last_commit
     self.index = Grit::Index.new(@repo)
     index.read_tree(parent.to_s)
-    self.records = records_for(model)
+    self.attrs = records_for(model)
     yield self
     committer = Grit::Actor.new("fyskij", "fiorito.g@gmail.com")
     index.commit("lol", nil, committer, nil, "master")
