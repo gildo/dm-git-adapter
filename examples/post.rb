@@ -19,4 +19,5 @@ DataMapper.finalize
   :body       => "A lot fewtext ...",
   :created_at => Time.now
 )
-@post.save!
+puts @post.save!
+puts Post.all
